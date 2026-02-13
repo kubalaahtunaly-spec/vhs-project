@@ -2,49 +2,92 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VHS_EXPEDITION_FINAL_V4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VHS_EXPEDITION_FINAL_RESTORATION</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         body, html {
             margin: 0; padding: 0; background: #000; color: #eee;
-            font-family: 'VT323', monospace; overflow: hidden; cursor: crosshair;
+            font-family: 'VT323', monospace; overflow: hidden;
             user-select: none; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
-        
-        /* Эффект помехи при спаме (вылетающая тень) */
+
+        /* --- VHS ВИЗУАЛ --- */
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://64.media.tumblr.com/tumblr_m4627fID931qfjj9zo1_500.gif');
+            opacity: 0.1; pointer-events: none; z-index: 50;
+        }
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 51;
+        }
+        .vhs-overlay {
+            position: fixed; top: 15px; left: 15px; font-size: 1.2rem;
+            text-shadow: 1px 0 red, -1px 0 blue; z-index: 60; opacity: 0.7;
+        }
+
+        /* --- ЭФФЕКТЫ НАКАЗАНИЯ (СДЕРЖАННЫЕ) --- */
+        #punishment-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.96); color: #8b0000; z-index: 10000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        #punishment-text { font-size: 2.2rem; letter-spacing: 5px; text-transform: uppercase; text-align: center; padding: 20px; }
+
         .glitch-flash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(139, 0, 0, 0.2);
-            backdrop-filter: invert(1) hue-rotate(90deg);
+            background: rgba(139, 0, 0, 0.1); backdrop-filter: brightness(1.2);
             z-index: 9999; display: none; pointer-events: none;
         }
 
-        #punishment-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); color: #8b0000; z-index: 10000;
-            flex-direction: column; justify-content: center; align-items: center;
+        /* --- КОНТЕНТ --- */
+        .cinema-container { 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; height: 100vh; width: 100vw; 
+        }
+        #frame-image { width: 100%; max-height: 55vh; display: none; object-fit: contain; }
+        #intertitle { 
+            font-size: 1.4rem; text-transform: uppercase; text-align: center; 
+            max-width: 90%; padding: 20px; text-shadow: 2px 2px #000;
         }
         
-        #punishment-text { font-size: 3rem; letter-spacing: 10px; text-transform: uppercase; }
+        /* --- СТАРТ И ФИНАЛ --- */
+        #loading-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
+            z-index: 1001; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        }
+        #start-btn { 
+            display: none; padding: 15px 40px; background: transparent; border: 2px solid #8b0000; 
+            color: #8b0000; font-family: 'VT323'; font-size: 1.6rem; cursor: pointer;
+        }
 
-        .cinema-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; transition: filter 0.2s; }
-        #frame-image { width: 100%; max-height: 85vh; display: none; object-fit: contain; }
-        #intertitle { font-size: 1.8rem; text-transform: uppercase; text-align: center; max-width: 85%; padding: 20px; }
+        .glitch-screen { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 100; flex-direction: column; justify-content: center; 
+            align-items: center; padding: 20px; box-sizing: border-box; 
+        }
+        .shaman-text-style { color: #ccc; font-size: 1.3rem; width: 90%; line-height: 1.4; max-width: 500px; }
         
-        .glitch-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; flex-direction: column; justify-content: center; align-items: center; }
-        .shaman-text-style { color: #ccc; font-size: 1.8rem; text-align: left; width: 80%; line-height: 1.4; }
-        
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1001; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #start-btn { display: none; padding: 10px 30px; background: transparent; border: 2px solid #8b0000; color: #8b0000; font-family: 'VT323'; font-size: 1.5rem; cursor: pointer; }
+        .shaking { animation: shake 0.1s infinite; }
+        @keyframes shake { 
+            0% { transform: translate(1px, 1px); } 
+            50% { transform: translate(-1px, -1px); } 
+            100% { transform: translate(1px, 1px); } 
+        }
     </style>
 </head>
 <body onclick="handleInteraction()">
 
+<div class="noise"></div>
+<div class="scanlines"></div>
+<div class="vhs-overlay" id="vhs-status">PLAY ▶</div>
 <div id="glitch-flash" class="glitch-flash"></div>
 
 <div id="loading-screen">
-    <div style="color:#444; letter-spacing:5px; margin-bottom:20px;">ВОССТАНАВЛИВАЕМ ПУСТОТУ...</div>
+    <div style="color:#444; letter-spacing:3px; margin-bottom:20px;">SYSTEM_RESTORING...</div>
     <button id="start-btn" onclick="initExperience(event)">ОТКРОЙТЕ ГЛАЗА</button>
 </div>
 
@@ -54,13 +97,12 @@
 
 <div class="cinema-container" id="main-ui">
     <img id="frame-image" src="" alt="">
-    <div id="intertitle">ВКЛЮЧИТЬ</div>
+    <div id="intertitle">ВКЛЮЧИТЬ ПЛЕНКУ</div>
 </div>
 
 <div id="glitch-screen" class="glitch-screen"></div>
 
 <script>
-    // Тот же сценарий, что и ранее
     const script = [
         { text: "Сегодня погода хорошая.", img: "1.webp", sound: ["природа.mp3"] },
         { text: "Слышали, что недалеко есть озеро.", img: "2.webp", sound: ["природа.mp3"] },
@@ -101,22 +143,24 @@
     let clickCount = 0;
     let lastClickTime = 0;
 
-    window.onload = () => { setTimeout(() => document.getElementById('start-btn').style.display = "block", 2000); };
-    function initExperience(e) { e.stopPropagation(); document.getElementById('loading-screen').style.display = "none"; nextStep(); }
+    window.onload = () => { setTimeout(() => document.getElementById('start-btn').style.display = "block", 1000); };
+
+    function initExperience(e) {
+        e.stopPropagation();
+        document.getElementById('loading-screen').style.display = "none";
+        nextStep();
+    }
 
     function handleInteraction() {
         const now = Date.now();
         if (now - lastClickTime < 350) {
             clickCount++;
-            // Визуальный "вылет" (вспышка помехи)
             const flash = document.getElementById('glitch-flash');
             flash.style.display = 'block';
-            setTimeout(() => flash.style.display = 'none', 50);
-        } else {
-            clickCount = 0;
-        }
+            setTimeout(() => flash.style.display = 'none', 40);
+        } else { clickCount = 0; }
+        
         lastClickTime = now;
-
         if (clickCount > 5) { triggerPunishment(); clickCount = 0; return; }
         if (!isAuto && current >= 0) nextStep();
     }
@@ -124,24 +168,24 @@
     function triggerPunishment() {
         const noDrumZone = current >= 16 && current <= 26;
         const overlay = document.getElementById('punishment-overlay');
+        const phrases = ["Я ЕЩЕ НЕ ДОГОВОРИЛ.", "СМОТРИ ВНИМАТЕЛЬНО.", "ТИШЕ.", "НЕ СПЕШИ."];
+        document.getElementById('punishment-text').innerText = phrases[Math.floor(Math.random() * phrases.length)];
         overlay.style.display = "flex";
         
         let s = null;
         if (!noDrumZone) {
             s = new Audio("бубен.mp3");
-            s.playbackRate = 0.5; s.volume = 0.3;
-            s.play();
+            s.volume = 0.3; s.play().catch(()=>{});
         }
-
-        setTimeout(() => {
-            overlay.style.display = "none";
+        setTimeout(() => { 
+            overlay.style.display = "none"; 
             if (s) { s.pause(); s.src = ""; }
         }, 1200);
     }
 
     function playSounds(files) {
         if (files === "stop") {
-            for (let f in activeAudios) { activeAudios[f].pause(); activeAudios[f].currentTime = 0; }
+            for (let f in activeAudios) { activeAudios[f].pause(); }
             activeAudios = {}; return;
         }
         const toPlay = Array.isArray(files) ? files : [files];
@@ -153,15 +197,13 @@
                 delete activeAudios[f];
             }
         }
-
         toPlay.forEach(f => {
             if (f === "бубен.mp3" && noDrumZone) return;
             if (!activeAudios[f]) {
                 let a = new Audio(f);
                 a.loop = (f !== "замок.mp3" && f !== "струя3.mp3" && f !== "бубен.mp3");
                 if (f === "бубен.mp3" && current < 20) a.loop = true;
-                a.volume = 0.4;
-                a.play().catch(()=>{});
+                a.volume = 0.4; a.play().catch(()=>{});
                 activeAudios[f] = a;
             }
         });
@@ -185,26 +227,46 @@
         document.getElementById('main-ui').style.display = 'none';
         const screen = document.getElementById('glitch-screen');
         screen.style.display = "flex";
+        screen.style.transition = "background 8s ease-in"; 
+        
         const terminal = document.createElement('div');
         terminal.className = "shaman-text-style";
         screen.appendChild(terminal);
-        const lines = ["Ты выжил, потому что они позволили.", "Палатка была заперта снаружи.", "Твоими руками.", "Я вас не отпускал. Просто дал вам поводок подлиннее.", "Теперь тяни."];
+
+        const lines = [
+            "Ты выжил, потому что они позволили.",
+            "Палатка была заперта снаружи.",
+            "Твоими руками.",
+            "Я вас не отпускал. Просто дал вам поводок подлиннее.",
+            "Теперь тяни."
+        ];
+
         let i = 0;
         function showLine() {
             if (i < lines.length) {
                 let d = document.createElement('div');
-                d.style.marginBottom = "20px";
-                if (i === lines.length - 1) d.style.color = "#8b0000";
+                d.style.marginBottom = "15px";
+                if (i === lines.length - 1) {
+                    d.style.color = "#ff0000"; d.style.fontWeight = "bold"; d.style.fontSize = "1.8rem";
+                    document.body.classList.add('shaking'); screen.style.background = "#200000";
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                }
                 terminal.appendChild(d);
                 let charI = 0; let text = lines[i];
                 let typer = setInterval(() => {
                     if (charI < text.length) {
                         d.innerText += text[charI]; charI++;
-                        if (Math.random() > 0.8) { let s = new Audio("бубен.mp3"); s.playbackRate = 4; s.volume = 0.05; s.play(); }
+                        if (charI % 3 === 0) {
+                            let s = new Audio("бубен.mp3"); s.playbackRate = 4; s.volume = 0.05; s.play().catch(()=>{});
+                        }
                     } else { clearInterval(typer); i++; setTimeout(showLine, 1500); }
                 }, 60);
             } else {
-                setTimeout(() => window.location.reload(), 3000);
+                setTimeout(() => {
+                    screen.style.transition = "background 0.2s"; screen.style.background = "#eee"; 
+                    terminal.style.opacity = "0"; if (navigator.vibrate) navigator.vibrate(500);
+                    setTimeout(() => { window.location.reload(); }, 1000);
+                }, 3500);
             }
         }
         showLine();
