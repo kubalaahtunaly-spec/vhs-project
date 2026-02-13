@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VHS_EXPEDITION_FINAL_V4</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0; padding: 0; background: #000; color: #eee;
+            font-family: 'VT323', monospace; overflow: hidden; cursor: crosshair;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Эффект помехи при спаме (вылетающая тень) */
+        .glitch-flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(139, 0, 0, 0.2);
+            backdrop-filter: invert(1) hue-rotate(90deg);
+            z-index: 9999; display: none; pointer-events: none;
+        }
+
+        #punishment-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); color: #8b0000; z-index: 10000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        #punishment-text { font-size: 3rem; letter-spacing: 10px; text-transform: uppercase; }
+
+        .cinema-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; transition: filter 0.2s; }
+        #frame-image { width: 100%; max-height: 85vh; display: none; object-fit: contain; }
+        #intertitle { font-size: 1.8rem; text-transform: uppercase; text-align: center; max-width: 85%; padding: 20px; }
+        
+        .glitch-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; flex-direction: column; justify-content: center; align-items: center; }
+        .shaman-text-style { color: #ccc; font-size: 1.8rem; text-align: left; width: 80%; line-height: 1.4; }
+        
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1001; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #start-btn { display: none; padding: 10px 30px; background: transparent; border: 2px solid #8b0000; color: #8b0000; font-family: 'VT323'; font-size: 1.5rem; cursor: pointer; }
+    </style>
+</head>
+<body onclick="handleInteraction()">
+
+<div id="glitch-flash" class="glitch-flash"></div>
+
+<div id="loading-screen">
+    <div style="color:#444; letter-spacing:5px; margin-bottom:20px;">ВОССТАНАВЛИВАЕМ ПУСТОТУ...</div>
+    <button id="start-btn" onclick="initExperience(event)">ОТКРОЙТЕ ГЛАЗА</button>
+</div>
+
+<div id="punishment-overlay">
+    <div id="punishment-text">ТИШЕ.</div>
+</div>
+
+<div class="cinema-container" id="main-ui">
+    <img id="frame-image" src="" alt="">
+    <div id="intertitle">ВКЛЮЧИТЬ</div>
+</div>
+
+<div id="glitch-screen" class="glitch-screen"></div>
+
+<script>
+    // Тот же сценарий, что и ранее
+    const script = [
+        { text: "Сегодня погода хорошая.", img: "1.webp", sound: ["природа.mp3"] },
+        { text: "Слышали, что недалеко есть озеро.", img: "2.webp", sound: ["природа.mp3"] },
+        { text: "Самое то, чтоб отдохнуть.", img: "3.webp", sound: ["природа.mp3"] },
+        { text: "Не понимаю, почему жители были против.", img: "3.webp", sound: ["природа.mp3"] },
+        { text: "Можно ведь хоть на день забыть о практике?", img: "4.webp", sound: ["природа.mp3"] },
+        { text: "Поздним вечером захотели найти могилу шамана. Для забавы.", img: "5.webp", sound: ["природа.mp3"] },
+        { text: "Некоторые отговаривали. Некоторые ослушались.", sound: ["листья.mp3"], auto: 4500 },
+        { text: "Найти шамана не составило труда.", img: "7.webp", auto: 5000, sound: ["листья.mp3"] },
+        { text: "Не помню, что мы там делали,..", img: "8.webp", sound: ["струя3.mp3"], auto: 6000 },
+        { text: "Наступила ночь. Было так холодно.", sound: ["ночь.mp3"], auto: 5000 },
+        { text: "Даже внутри тесной палатки.", sound: ["ночь.mp3"], auto: 4000 },
+        { text: "Становилось ветрено. Больше походило на бурю. ", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 5000 },
+        { text: "И вместе с этим кто-то начал ходить вокруг нас.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 4000 },
+        { text: "Пытались криком напугать гостя.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 4000 },
+        { text: "Но он не уходил.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 3000 },
+        { text: "Вдруг резко велел выйти мне и моему другу.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 6000 },
+        { text: "От страха нас вытолкнули.", sound: ["замок.mp3"], auto: 2200 },
+        { text: "Снаружи никого не оказалось.", img: "10.webp", sound: "stop", auto: 5000 },
+        { text: "Никого и ничего.", auto: 2000 },
+        { text: "Хотели вернуться обратно, но внутри нас больше никто не ждал.", img: "11.webp", auto: 5000 },
+        { text: "Мы так испугались, что оставили их в лесу.", auto: 4000 },
+        { text: "Рассказали жителям, что произошло.", auto: 5000 },
+        { text: "В итоге нас допросили,..", img: "13.webp", auto: 3000 },
+        { text: "Нас обвинили.", img: "14.webp", auto: 2000 },
+        { text: "Никто не объяснил, что произошло на самом деле.", img: "15.webp", auto: 4000 },
+        { text: "Сказали, что в ту ночь точно не было бури.", img: "15.webp", auto: 4000 },
+        { text: "Экспертиза выявила у студентов сердечную недостаточность,", img: "16.webp", auto: 4000 },
+        { text: "Поэтому нас отпустили домой.", img: "17.webp", auto: 2000, sound: ["бубен.mp3"] },
+        { text: "Думал, что всё теперь позади, но что-то...", img: "18.webp", auto: 5000, sound: ["бубен.mp3"] },
+        { text: "Меня беспокоило.", auto: 3000, sound: ["бубен.mp3"] },
+        { glitch: true, sound: ["бубен.mp3"], auto: 6000 }
+    ];
+
+    let current = -1;
+    let isAuto = false;
+    let activeAudios = {};
+    let clickCount = 0;
+    let lastClickTime = 0;
+
+    window.onload = () => { setTimeout(() => document.getElementById('start-btn').style.display = "block", 2000); };
+    function initExperience(e) { e.stopPropagation(); document.getElementById('loading-screen').style.display = "none"; nextStep(); }
+
+    function handleInteraction() {
+        const now = Date.now();
+        if (now - lastClickTime < 350) {
+            clickCount++;
+            // Визуальный "вылет" (вспышка помехи)
+            const flash = document.getElementById('glitch-flash');
+            flash.style.display = 'block';
+            setTimeout(() => flash.style.display = 'none', 50);
+        } else {
+            clickCount = 0;
+        }
+        lastClickTime = now;
+
+        if (clickCount > 5) { triggerPunishment(); clickCount = 0; return; }
+        if (!isAuto && current >= 0) nextStep();
+    }
+
+    function triggerPunishment() {
+        const noDrumZone = current >= 16 && current <= 26;
+        const overlay = document.getElementById('punishment-overlay');
+        overlay.style.display = "flex";
+        
+        let s = null;
+        if (!noDrumZone) {
+            s = new Audio("бубен.mp3");
+            s.playbackRate = 0.5; s.volume = 0.3;
+            s.play();
+        }
+
+        setTimeout(() => {
+            overlay.style.display = "none";
+            if (s) { s.pause(); s.src = ""; }
+        }, 1200);
+    }
+
+    function playSounds(files) {
+        if (files === "stop") {
+            for (let f in activeAudios) { activeAudios[f].pause(); activeAudios[f].currentTime = 0; }
+            activeAudios = {}; return;
+        }
+        const toPlay = Array.isArray(files) ? files : [files];
+        const noDrumZone = current >= 16 && current <= 26;
+
+        for (let f in activeAudios) {
+            if (!toPlay.includes(f) || (f === "бубен.mp3" && noDrumZone)) {
+                activeAudios[f].pause();
+                delete activeAudios[f];
+            }
+        }
+
+        toPlay.forEach(f => {
+            if (f === "бубен.mp3" && noDrumZone) return;
+            if (!activeAudios[f]) {
+                let a = new Audio(f);
+                a.loop = (f !== "замок.mp3" && f !== "струя3.mp3" && f !== "бубен.mp3");
+                if (f === "бубен.mp3" && current < 20) a.loop = true;
+                a.volume = 0.4;
+                a.play().catch(()=>{});
+                activeAudios[f] = a;
+            }
+        });
+    }
+
+    function nextStep() {
+        current++;
+        if (current >= script.length) return;
+        const step = script[current];
+        if (step.glitch) { startGlitch(); return; }
+        if (step.sound) playSounds(step.sound);
+        
+        const img = document.getElementById('frame-image');
+        if (step.img) { img.src = step.img; img.style.display = "block"; } else { img.style.display = "none"; }
+        document.getElementById('intertitle').innerText = step.text || "";
+        
+        if (step.auto) { isAuto = true; setTimeout(nextStep, step.auto); } else { isAuto = false; }
+    }
+
+    function startGlitch() {
+        document.getElementById('main-ui').style.display = 'none';
+        const screen = document.getElementById('glitch-screen');
+        screen.style.display = "flex";
+        const terminal = document.createElement('div');
+        terminal.className = "shaman-text-style";
+        screen.appendChild(terminal);
+        const lines = ["Ты выжил, потому что они позволили.", "Палатка была заперта снаружи.", "Твоими руками.", "Я вас не отпускал. Просто дал вам поводок подлиннее.", "Теперь тяни."];
+        let i = 0;
+        function showLine() {
+            if (i < lines.length) {
+                let d = document.createElement('div');
+                d.style.marginBottom = "20px";
+                if (i === lines.length - 1) d.style.color = "#8b0000";
+                terminal.appendChild(d);
+                let charI = 0; let text = lines[i];
+                let typer = setInterval(() => {
+                    if (charI < text.length) {
+                        d.innerText += text[charI]; charI++;
+                        if (Math.random() > 0.8) { let s = new Audio("бубен.mp3"); s.playbackRate = 4; s.volume = 0.05; s.play(); }
+                    } else { clearInterval(typer); i++; setTimeout(showLine, 1500); }
+                }, 60);
+            } else {
+                setTimeout(() => window.location.reload(), 3000);
+            }
+        }
+        showLine();
+    }
+</script>
+</body>
+</html>
