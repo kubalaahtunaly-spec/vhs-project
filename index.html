@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VHS_EXPEDITION_FINAL_RESTORATION</title>
+    <title>VHS_EXPEDITION_FIXED</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         body, html {
@@ -12,138 +12,76 @@
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
+        .noise, .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+        .noise { background: url('https://64.media.tumblr.com/tumblr_m4627fID931qfjj9zo1_500.gif'); opacity: 0.1; }
+        .scanlines { background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%); background-size: 100% 4px; }
 
-        /* --- VHS ВИЗУАЛ --- */
-        .noise {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://64.media.tumblr.com/tumblr_m4627fID931qfjj9zo1_500.gif');
-            opacity: 0.1; pointer-events: none; z-index: 50;
-        }
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
-            background-size: 100% 4px; pointer-events: none; z-index: 51;
-        }
-        .vhs-overlay {
-            position: fixed; top: 15px; left: 15px; font-size: 1.2rem;
-            text-shadow: 1px 0 red, -1px 0 blue; z-index: 60; opacity: 0.7;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1001; display: flex; justify-content: center; align-items: center; }
+        #start-btn { display: none; padding: 15px 40px; background: transparent; border: 2px solid #8b0000; color: #8b0000; font-family: 'VT323'; font-size: 1.6rem; cursor: pointer; }
 
-        /* --- ЭФФЕКТЫ НАКАЗАНИЯ (СДЕРЖАННЫЕ) --- */
+        .cinema-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+        #frame-image { width: 100%; max-height: 55vh; display: none; object-fit: contain; }
+        #intertitle { font-size: 1.4rem; text-align: center; max-width: 90%; padding: 20px; line-height: 1.3; }
+
         #punishment-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.96); color: #8b0000; z-index: 10000;
+            background: rgba(0, 0, 0, 0.98); color: #8b0000; z-index: 10000;
             flex-direction: column; justify-content: center; align-items: center;
         }
-        #punishment-text { font-size: 2.2rem; letter-spacing: 5px; text-transform: uppercase; text-align: center; padding: 20px; }
 
-        .glitch-flash {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(139, 0, 0, 0.1); backdrop-filter: brightness(1.2);
-            z-index: 9999; display: none; pointer-events: none;
-        }
-
-        /* --- КОНТЕНТ --- */
-        .cinema-container { 
-            display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; height: 100vh; width: 100vw; 
-        }
-        #frame-image { width: 100%; max-height: 55vh; display: none; object-fit: contain; }
-        #intertitle { 
-            font-size: 1.4rem; text-transform: uppercase; text-align: center; 
-            max-width: 90%; padding: 20px; text-shadow: 2px 2px #000;
-        }
-        
-        /* --- СТАРТ И ФИНАЛ --- */
-        #loading-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
-            z-index: 1001; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        }
-        #start-btn { 
-            display: none; padding: 15px 40px; background: transparent; border: 2px solid #8b0000; 
-            color: #8b0000; font-family: 'VT323'; font-size: 1.6rem; cursor: pointer;
-        }
-
-        .glitch-screen { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 100; flex-direction: column; justify-content: center; 
-            align-items: center; padding: 20px; box-sizing: border-box; 
-        }
-        .shaman-text-style { color: #ccc; font-size: 1.3rem; width: 90%; line-height: 1.4; max-width: 500px; }
-        
-        .shaking { animation: shake 0.1s infinite; }
-        @keyframes shake { 
-            0% { transform: translate(1px, 1px); } 
-            50% { transform: translate(-1px, -1px); } 
-            100% { transform: translate(1px, 1px); } 
-        }
+        #glitch-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
+        .shaman-text-style { color: #ccc; font-size: 1.3rem; width: 85%; line-height: 1.6; }
+        .final-distortion { animation: distort 0.1s infinite; }
+        @keyframes distort { 0% { transform: skew(0deg); } 50% { transform: skew(1.5deg); filter: brightness(1.2); } 100% { transform: skew(-1deg); } }
     </style>
 </head>
 <body onclick="handleInteraction()">
 
 <div class="noise"></div>
 <div class="scanlines"></div>
-<div class="vhs-overlay" id="vhs-status">PLAY ▶</div>
-<div id="glitch-flash" class="glitch-flash"></div>
 
 <div id="loading-screen">
-    <div style="color:#444; letter-spacing:3px; margin-bottom:20px;">SYSTEM_RESTORING...</div>
     <button id="start-btn" onclick="initExperience(event)">ОТКРОЙТЕ ГЛАЗА</button>
 </div>
 
-<div id="punishment-overlay">
-    <div id="punishment-text">ТИШЕ.</div>
-</div>
+<div id="punishment-overlay"><h1 style="letter-spacing: 10px;">ТИШЕ.</h1></div>
 
 <div class="cinema-container" id="main-ui">
     <img id="frame-image" src="" alt="">
-    <div id="intertitle">ВКЛЮЧИТЬ ПЛЕНКУ</div>
+    <div id="intertitle">ВКЛЮЧИТЬ</div>
 </div>
 
-<div id="glitch-screen" class="glitch-screen"></div>
+<div id="glitch-screen"></div>
 
 <script>
-    const script = [
+const script = [
         { text: "Сегодня погода хорошая.", img: "1.webp", sound: ["природа.mp3"] },
         { text: "Слышали, что недалеко есть озеро.", img: "2.webp", sound: ["природа.mp3"] },
         { text: "Самое то, чтоб отдохнуть.", img: "3.webp", sound: ["природа.mp3"] },
-        { text: "Не понимаю, почему жители были против.", img: "3.webp", sound: ["природа.mp3"] },
-        { text: "Можно ведь хоть на день забыть о практике?", img: "4.webp", sound: ["природа.mp3"] },
-        { text: "Поздним вечером захотели найти могилу шамана. Для забавы.", img: "5.webp", sound: ["природа.mp3"] },
-        { text: "Некоторые отговаривали. Некоторые ослушались.", sound: ["листья.mp3"], auto: 4500 },
-        { text: "Найти шамана не составило труда.", img: "7.webp", auto: 5000, sound: ["листья.mp3"] },
-        { text: "Не помню, что мы там делали,..", img: "8.webp", sound: ["струя3.mp3"], auto: 6000 },
-        { text: "Наступила ночь. Было так холодно.", sound: ["ночь.mp3"], auto: 5000 },
-        { text: "Даже внутри тесной палатки.", sound: ["ночь.mp3"], auto: 4000 },
-        { text: "Становилось ветрено. Больше походило на бурю. ", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 5000 },
-        { text: "И вместе с этим кто-то начал ходить вокруг нас.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 4000 },
-        { text: "Пытались криком напугать гостя.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 4000 },
-        { text: "Но он не уходил.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 3000 },
-        { text: "Вдруг резко велел выйти мне и моему другу.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 6000 },
-        { text: "От страха нас вытолкнули.", sound: ["замок.mp3"], auto: 2200 },
-        { text: "Снаружи никого не оказалось.", img: "10.webp", sound: "stop", auto: 5000 },
-        { text: "Никого и ничего.", auto: 2000 },
-        { text: "Хотели вернуться обратно, но внутри нас больше никто не ждал.", img: "11.webp", auto: 5000 },
-        { text: "Мы так испугались, что оставили их в лесу.", auto: 4000 },
-        { text: "Рассказали жителям, что произошло.", auto: 5000 },
-        { text: "В итоге нас допросили,..", img: "13.webp", auto: 3000 },
-        { text: "Нас обвинили.", img: "14.webp", auto: 2000 },
-        { text: "Никто не объяснил, что произошло на самом деле.", img: "15.webp", auto: 4000 },
-        { text: "Сказали, что в ту ночь точно не было бури.", img: "15.webp", auto: 4000 },
-        { text: "Экспертиза выявила у студентов сердечную недостаточность,", img: "16.webp", auto: 4000 },
-        { text: "Поэтому нас отпустили домой.", img: "17.webp", auto: 2000, sound: ["бубен.mp3"] },
-        { text: "Думал, что всё теперь позади, но что-то...", img: "18.webp", auto: 5000, sound: ["бубен.mp3"] },
-        { text: "Меня беспокоило.", auto: 3000, sound: ["бубен.mp3"] },
-        { glitch: true, sound: ["бубен.mp3"], auto: 6000 }
+        { text: "Поздним вечером захотели найти могилу шамана.", img: "5.webp", sound: ["природа.mp3"] },
+        { text: "Некоторые отговаривали. Некоторые ослушались.", sound: ["листья.mp3"], auto: 5000 },
+        { text: "Найти шамана не составило труда.", img: "7.webp", auto: 6000, sound: ["листья.mp3"] },
+        { text: "Не помню, что мы там делали,..", img: "8.webp", auto: 6000, sound: ["струя3.mp3"] },
+        { text: "Наступила ночь. Было так холодно.", sound: ["ночь.mp3"], auto: 5500 },
+        { text: "Становилось ветрено. Больше походило на бурю.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 7000 },
+        { text: "И вместе с этим кто-то начал ходить вокруг нас.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 6500 },
+        { text: "Вдруг резко велел выйти мне и моему другу.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 7500 },
+        { text: "От страха нас вытолкнули.", sound: ["замок.mp3"], auto: 3000 },
+        { text: "Снаружи никого не оказалось.", img: "10.webp", sound: "stop", auto: 6000 }, // ЗДЕСЬ ВСЁ ДОЛЖНО УМЕРЕТЬ
+        { text: "Хотели вернуться обратно, но внутри нас больше никто не ждал.", img: "11.webp", auto: 7000 },
+        { text: "Сказали, что в ту ночь точно не было бури.", img: "15.webp", auto: 6500 },
+        { text: "Думал, что всё теперь позади, но что-то...", img: "18.webp", auto: 5500, sound: ["бубен.mp3"] },
+        { text: "Меня беспокоило.", auto: 4000, sound: ["бубен.mp3"] },
+        { glitch: true }
     ];
 
     let current = -1;
     let isAuto = false;
-    let activeAudios = {};
+    let activeAudios = {}; 
     let clickCount = 0;
     let lastClickTime = 0;
 
-    window.onload = () => { setTimeout(() => document.getElementById('start-btn').style.display = "block", 1000); };
+    window.onload = () => { document.getElementById('start-btn').style.display = "block"; };
 
     function initExperience(e) {
         e.stopPropagation();
@@ -155,55 +93,59 @@
         const now = Date.now();
         if (now - lastClickTime < 350) {
             clickCount++;
-            const flash = document.getElementById('glitch-flash');
-            flash.style.display = 'block';
-            setTimeout(() => flash.style.display = 'none', 40);
         } else { clickCount = 0; }
         
         lastClickTime = now;
-        if (clickCount > 5) { triggerPunishment(); clickCount = 0; return; }
+        if (clickCount > 4) { triggerPunishment(); clickCount = 0; return; }
         if (!isAuto && current >= 0) nextStep();
     }
 
     function triggerPunishment() {
-        const noDrumZone = current >= 16 && current <= 26;
         const overlay = document.getElementById('punishment-overlay');
-        const phrases = ["Я ЕЩЕ НЕ ДОГОВОРИЛ.", "СМОТРИ ВНИМАТЕЛЬНО.", "ТИШЕ.", "НЕ СПЕШИ."];
-        document.getElementById('punishment-text').innerText = phrases[Math.floor(Math.random() * phrases.length)];
         overlay.style.display = "flex";
         
-        let s = null;
-        if (!noDrumZone) {
-            s = new Audio("бубен.mp3");
-            s.volume = 0.3; s.play().catch(()=>{});
+        // Смертельный предохранитель: если в сюжете наступила тишина (индексы 12-14), бубен не включится НИКОГДА.
+        const isSilenceManual = (current >= 12 && current <= 14);
+
+        if (!isSilenceManual) {
+            let s = new Audio("бубен.mp3");
+            s.volume = 0.5;
+            s.play().catch(()=>{});
+            setTimeout(() => { s.pause(); s.src = ""; }, 1100);
         }
-        setTimeout(() => { 
-            overlay.style.display = "none"; 
-            if (s) { s.pause(); s.src = ""; }
-        }, 1200);
+        
+        setTimeout(() => { overlay.style.display = "none"; }, 1200);
     }
 
     function playSounds(files) {
+        // Если пришла команда стоп - выжигаем все активные звуки
         if (files === "stop") {
-            for (let f in activeAudios) { activeAudios[f].pause(); }
-            activeAudios = {}; return;
-        }
-        const toPlay = Array.isArray(files) ? files : [files];
-        const noDrumZone = current >= 16 && current <= 26;
-
-        for (let f in activeAudios) {
-            if (!toPlay.includes(f) || (f === "бубен.mp3" && noDrumZone)) {
+            for (let f in activeAudios) {
                 activeAudios[f].pause();
+                activeAudios[f].src = ""; // Очистка ресурса
+                delete activeAudios[f];
+            }
+            return;
+        }
+
+        const toPlay = Array.isArray(files) ? files : [files];
+
+        // Останавливаем те, которых нет в новом списке
+        for (let f in activeAudios) {
+            if (!toPlay.includes(f)) {
+                activeAudios[f].pause();
+                activeAudios[f].src = "";
                 delete activeAudios[f];
             }
         }
+
+        // Запускаем новые
         toPlay.forEach(f => {
-            if (f === "бубен.mp3" && noDrumZone) return;
             if (!activeAudios[f]) {
                 let a = new Audio(f);
-                a.loop = (f !== "замок.mp3" && f !== "струя3.mp3" && f !== "бубен.mp3");
-                if (f === "бубен.mp3" && current < 20) a.loop = true;
-                a.volume = 0.4; a.play().catch(()=>{});
+                a.loop = (f !== "замок.mp3" && f !== "струя3.mp3");
+                a.volume = 0.35;
+                a.play().catch(()=>{});
                 activeAudios[f] = a;
             }
         });
@@ -213,6 +155,7 @@
         current++;
         if (current >= script.length) return;
         const step = script[current];
+
         if (step.glitch) { startGlitch(); return; }
         if (step.sound) playSounds(step.sound);
         
@@ -220,57 +163,55 @@
         if (step.img) { img.src = step.img; img.style.display = "block"; } else { img.style.display = "none"; }
         document.getElementById('intertitle').innerText = step.text || "";
         
-        if (step.auto) { isAuto = true; setTimeout(nextStep, step.auto); } else { isAuto = false; }
+        if (step.auto) { 
+            isAuto = true; 
+            setTimeout(() => {
+                // Проверка, чтобы автопереход не сработал, если мы уже на другом шаге
+                nextStep();
+            }, step.auto); 
+        } else { 
+            isAuto = false; 
+        }
     }
 
     function startGlitch() {
+        // Убиваем все звуки перед финалом
+        playSounds("stop");
+        
         document.getElementById('main-ui').style.display = 'none';
         const screen = document.getElementById('glitch-screen');
         screen.style.display = "flex";
-        screen.style.transition = "background 8s ease-in"; 
-        
         const terminal = document.createElement('div');
         terminal.className = "shaman-text-style";
         screen.appendChild(terminal);
 
-        const lines = [
-            "Ты выжил, потому что они позволили.",
-            "Палатка была заперта снаружи.",
-            "Твоими руками.",
-            "Я вас не отпускал. Просто дал вам поводок подлиннее.",
-            "Теперь тяни."
-        ];
-
+        const lines = ["Ты выжил, потому что они позволили.", "Палатка была заперта снаружи.", "Твоими руками.", "Я вас не отпускал.", "Просто дал вам поводок подлиннее.", "Теперь тяни."];
         let i = 0;
         function showLine() {
             if (i < lines.length) {
                 let d = document.createElement('div');
-                d.style.marginBottom = "15px";
-                if (i === lines.length - 1) {
-                    d.style.color = "#ff0000"; d.style.fontWeight = "bold"; d.style.fontSize = "1.8rem";
-                    document.body.classList.add('shaking'); screen.style.background = "#200000";
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                }
+                d.style.marginBottom = "20px";
+                if (i === lines.length - 1) { d.style.color = "#8b0000"; screen.classList.add('final-distortion'); }
                 terminal.appendChild(d);
                 let charI = 0; let text = lines[i];
                 let typer = setInterval(() => {
                     if (charI < text.length) {
                         d.innerText += text[charI]; charI++;
-                        if (charI % 3 === 0) {
-                            let s = new Audio("бубен.mp3"); s.playbackRate = 4; s.volume = 0.05; s.play().catch(()=>{});
+                        if (charI % 4 === 0) {
+                            let s = new Audio("бубен.mp3"); s.playbackRate = 4; s.volume = 0.04; s.play().catch(()=>{});
                         }
-                    } else { clearInterval(typer); i++; setTimeout(showLine, 1500); }
+                    } else { clearInterval(typer); i++; setTimeout(showLine, 1800); }
                 }, 60);
             } else {
-                setTimeout(() => {
-                    screen.style.transition = "background 0.2s"; screen.style.background = "#eee"; 
-                    terminal.style.opacity = "0"; if (navigator.vibrate) navigator.vibrate(500);
-                    setTimeout(() => { window.location.reload(); }, 1000);
+                setTimeout(() => { 
+                    screen.style.background = "#fff"; 
+                    setTimeout(() => window.location.reload(), 600); 
                 }, 3500);
             }
         }
         showLine();
     }
+   
 </script>
 </body>
 </html>
