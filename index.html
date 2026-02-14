@@ -29,17 +29,16 @@
             flex-direction: column; justify-content: center; align-items: center;
         }
 
-        /* Адаптивный финал */
         #glitch-screen { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #000; z-index: 1000; flex-direction: column; 
             justify-content: flex-start; align-items: center; 
             padding: 40px 20px; overflow-y: auto; box-sizing: border-box;
         }
-        .shaman-text-style { color: #ccc; font-size: 1.2rem; width: 100%; max-width: 500px; line-height: 1.5; }
+        .shaman-text-style { color: #ccc; font-size: 1.2rem; width: 100%; max-width: 600px; line-height: 1.5; text-align: center; }
         
         .final-distortion { animation: distort 0.1s infinite; }
-        @keyframes distort { 0% { transform: skew(0deg); } 50% { transform: skew(1deg); filter: contrast(1.2); } 100% { transform: skew(-0.5deg); } }
+        @keyframes distort { 0% { transform: skew(0deg); } 50% { transform: skew(1.2deg); filter: contrast(1.5) brightness(1.2); } 100% { transform: skew(-0.8deg); } }
     </style>
 </head>
 <body onclick="handleInteraction()">
@@ -79,7 +78,7 @@
         { text: "Но он не уходил.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 4000 },
         { text: "Вдруг резко велел мне и моему другу выйти из палатки.", sound: ["буря.mp3", "шаги.mp3", "бубен.mp3"], auto: 7000 },
         { text: "От страха наши друзья вытолкнули нас.", sound: ["замок.mp3"], auto: 5000 },
-        { text: "Снаружи никого не оказалось.", img: "10.webp", sound: "stop", auto: 6000 }, // ТИШИНА НАЧАЛАСЬ (Индекс 17)
+        { text: "Снаружи никого не оказалось.", img: "10.webp", sound: "stop", auto: 6000 },
         { text: "Никого и ничего.", auto: 4000 },
         { text: "Хотели вернуться, но внутри никто больше не ждал. Мы их больше не узнавали.", img: "11.webp", auto: 7000 },
         { text: "Мы так испугались, что оставили их в лесу.", auto: 6000 },
@@ -89,7 +88,7 @@
         { text: "Никто не объяснил, что произошло на самом деле.", img: "15.webp", auto: 6000 },
         { text: "Сказали, что в ту ночь точно не было бури.", img: "15.webp", auto: 6000 },
         { text: "Экспертиза выявила у жертв сердечную недостаточность,", img: "16.webp", auto: 7000 },
-        { text: "Поэтому нас отпустили домой.", img: "17.webp", auto: 5000, sound: ["бубен.mp3"] }, // ТИШИНА ЗАКОНЧИЛАСЬ
+        { text: "Поэтому нас отпустили домой.", img: "17.webp", auto: 5000, sound: ["бубен.mp3"] },
         { text: "Думал, что всё теперь позади, но что-то...", img: "18.webp", auto: 5500, sound: ["бубен.mp3"] },
         { text: "Меня беспокоило.", auto: 4500, sound: ["бубен.mp3"] },
         { glitch: true }
@@ -114,7 +113,6 @@
         if (now - lastClickTime < 350) clickCount++;
         else clickCount = 0;
         lastClickTime = now;
-
         if (clickCount > 4) { triggerPunishment(); clickCount = 0; return; }
         if (!isAuto && current >= 0) nextStep();
     }
@@ -122,7 +120,6 @@
     function triggerPunishment() {
         const overlay = document.getElementById('punishment-overlay');
         overlay.style.display = "flex";
-        // Блокировка бубна строго между 17 и 26 слайдами
         const isSilenceManual = (current >= 17 && current <= 26);
         if (!isSilenceManual) {
             let s = new Audio("бубен.mp3");
@@ -134,16 +131,12 @@
 
     function playSounds(files) {
         if (files === "stop") {
-            for (let f in activeAudios) {
-                activeAudios[f].pause(); activeAudios[f].src = ""; delete activeAudios[f];
-            }
+            for (let f in activeAudios) { activeAudios[f].pause(); delete activeAudios[f]; }
             return;
         }
         const toPlay = Array.isArray(files) ? files : [files];
         for (let f in activeAudios) {
-            if (!toPlay.includes(f)) {
-                activeAudios[f].pause(); activeAudios[f].src = ""; delete activeAudios[f];
-            }
+            if (!toPlay.includes(f)) { activeAudios[f].pause(); delete activeAudios[f]; }
         }
         toPlay.forEach(f => {
             if (!activeAudios[f]) {
@@ -172,87 +165,72 @@
         } else { isAuto = false; }
     }
 
-function startGlitch() {
+    function startGlitch() {
         playSounds("stop");
         const screen = document.getElementById('glitch-screen');
         document.getElementById('main-ui').style.display = 'none';
         screen.style.display = "flex";
-        screen.style.background = "#050000"; // Едва заметный кровавый подтон
+        screen.style.background = "#050000"; 
         
         const terminal = document.createElement('div');
         terminal.className = "shaman-text-style";
-        // Делаем текст более агрессивным для смартфона
-        terminal.style.fontSize = "1.5rem";
         terminal.style.textTransform = "uppercase";
         screen.appendChild(terminal);
 
         const lines = [
-            "Ты выжил?",
-            "Нет.",
-            "Ты просто вышел наружу.",
-            "Палатка была заперта снаружи.",
-            "ТВОИМИ. РУКАМИ.",
-            "Они кричали.",
-            "А ты слушал.",
-            "Я вас не отпускал.",
+            "Ты выжил?", "Нет.", "Ты просто вышел наружу.",
+            "Палатка была заперта снаружи.", "ТВОИМИ. РУКАМИ.",
+            "Они кричали.", "А ты слушал.", "Я вас не отпускал.",
             "Я просто удлинил поводок.",
-            "ТЯНИ.",
-            "ТЯНИ.",
-            "ТЯНИ."
+            "ТЕПЕРЬ ТЯНИ.", "ТЯНИ.", "ТЯНИ."
         ];
 
         let i = 0;
         function showLine() {
             if (i < lines.length) {
                 let d = document.createElement('div');
-                d.style.marginBottom = "15px";
+                d.style.marginBottom = "20px";
                 d.style.letterSpacing = "2px";
                 
-                // Финальное давление: краснеющий и дрожащий текст
-                if (i >= lines.length - 3) {
-                    d.style.color = "#ff0000";
-                    d.style.fontWeight = "bold";
-                    d.style.fontSize = "2rem";
+                // Прогрессия шрифта для ТЯНИ
+                if (i === lines.length - 3) {
+                    d.style.color = "#8b0000"; d.style.fontSize = "2.5rem"; d.style.fontWeight = "bold";
+                } else if (i === lines.length - 2) {
+                    d.style.color = "#ff0000"; d.style.fontSize = "4.5rem"; d.style.fontWeight = "900";
+                    d.style.textShadow = "0 0 15px rgba(255,0,0,0.6)";
+                } else if (i === lines.length - 1) {
+                    d.style.color = "#ff0000"; d.style.fontSize = "8rem"; d.style.fontWeight = "900";
+                    d.style.textShadow = "0 0 30px rgba(255,0,0,1)";
                     screen.classList.add('final-distortion');
                 }
 
                 terminal.appendChild(d);
                 let charI = 0;
                 let text = lines[i];
-                
-                // Рваная скорость печати
-                let speed = i > 5 ? 30 : 80; 
+                let speed = i >= lines.length - 3 ? 150 : 60;
 
                 let typer = setInterval(() => {
                     if (charI < text.length) {
                         d.innerText += text[charI];
                         charI++;
-                        
-                        // Звук бубна нарастает
                         let s = new Audio("бубен.mp3");
-                        s.playbackRate = i > 7 ? 5 : 2;
-                        s.volume = 0.1;
+                        s.playbackRate = i >= lines.length - 3 ? 0.6 : 2;
+                        s.volume = i >= lines.length - 3 ? 0.5 : 0.1;
                         s.play().catch(()=>{});
-                        
                         screen.scrollTop = screen.scrollHeight;
                     } else {
                         clearInterval(typer);
                         i++;
-                        // Чем ближе к концу, тем короче пауза между строками
-                        let pause = i > 8 ? 400 : 1200;
-                        setTimeout(showLine, pause);
+                        setTimeout(showLine, i >= lines.length - 3 ? 1000 : 1200);
                     }
                 }, speed);
             } else {
-                // Финальный аккорд: экран заливается белым шумом на мгновение
                 setTimeout(() => {
                     screen.style.background = "#fff";
                     let finalScreamer = new Audio("бубен.mp3");
-                    finalScreamer.volume = 1;
-                    finalScreamer.play().catch(()=>{});
-                    
-                    setTimeout(() => window.location.reload(), 200);
-                }, 2000);
+                    finalScreamer.volume = 1; finalScreamer.play().catch(()=>{});
+                    setTimeout(() => window.location.reload(), 400);
+                }, 3000);
             }
         }
         showLine();
